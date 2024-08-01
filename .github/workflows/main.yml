@@ -24,7 +24,8 @@ jobs:
     - name: Set up Python
       uses: actions/setup-python@v4
       with:
-        python-version: 3.9
+        matrix:
+          python-version: ["pypy3.9", "pypy3.10", "3.9", "3.10", "3.11", "3.12"]
 
     - name: Install dependencies
       run: |
@@ -66,7 +67,7 @@ jobs:
         with:
           context: ./backend/
           push: true
-          tags: ligay/kittygram_backend:latest 
+          tags: ${{ secrets.DOCKER_USERNAME }}/kittygram_backend:latest 
   
   frontend_tests:
     runs-on: ubuntu-latest
@@ -110,7 +111,7 @@ jobs:
         with:
           context: ./frontend/
           push: true
-          tags: ligay/kittygram_frontend:latest
+          tags: ${{ secrets.DOCKER_USERNAME }}/kittygram_frontend:latest
   
   build_gateway_and_push_to_docker_hub:
     name: Push gateway Docker image to DockerHub
@@ -133,7 +134,7 @@ jobs:
         with:
           context: ./nginx/
           push: true
-          tags: ligay/kittygram_gateway:latest
+          tags: ${{ secrets.DOCKER_USERNAME }}/kittygram_gateway:latest
   
   deploy:
     runs-on: ubuntu-latest
@@ -141,6 +142,8 @@ jobs:
       - build_and_push_to_docker_hub
       - build_frontend_and_push_to_docker_hub
       - build_gateway_and_push_to_docker_hub
+    if: github.ref == 'refs/heads/main'
+    environment: production
     steps:
       - name: Checkout repo
         uses: actions/checkout@v3
